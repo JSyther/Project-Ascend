@@ -1,0 +1,29 @@
+// @2023 All rights reversed by Reverse-Alpha Studios
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "AICharacterBase.generated.h"
+
+UCLASS()
+class ASCEND_API AAICharacterBase : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this character's properties
+	AAICharacterBase();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+};
