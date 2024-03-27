@@ -14,6 +14,7 @@ class ARangedWeapon;
 
 class UArsenalComponent;
 class UAIPerceptionStimuliSourceComponent;
+class UAttributeComponent;
 class UCameraComponent;
 class UCapsuleComponent;
 class UCharacterDefaultAnimInstance;
@@ -26,7 +27,7 @@ class UInputMappingContext;
 class UInputAction;
 
 UCLASS()
-class ASCEND_API ABaseCharacter : public ACharacter
+class ASCEND_API ABaseCharacter : public ACharacter 
 {
 	GENERATED_BODY()
 
@@ -49,10 +50,6 @@ public:
 	//	Create the components as character's subobjects.
 	void CreateSubobjectComponents();
 #pragma endregion
-
-
-
-
 protected:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -81,6 +78,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UViewInterfaceComponent* ViewInterface;
 
+	UPROPERTY(VisibleAnywhere)
+	UAttributeComponent* AttributeComponent;
+	
 public:
 	FORCEINLINE UArsenalComponent* GetArsenalSystem() const						{ return ArsenalSystem; }
 	FORCEINLINE UCameraComponent* GetPlayerCamera() const						{ return PlayerCamera; }

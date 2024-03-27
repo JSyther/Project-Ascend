@@ -28,7 +28,7 @@ private:
 	ABaseCharacter* BaseCharacter;
 
 public:
-	void SetBaseCharacterForCombatSystemComponent(ABaseCharacter* GetBaseCharacter) { BaseCharacter = GetBaseCharacter; }
+	void SetBaseCharacter(ABaseCharacter* GetBaseCharacter) { BaseCharacter = GetBaseCharacter; }
 
 #pragma region Weapon
 private:

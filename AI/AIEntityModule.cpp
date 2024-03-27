@@ -4,8 +4,11 @@
 #include "AIEntityModule.h"
 
 #include "Components/CapsuleComponent.h"
-
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetComponent.h"
+
+#include "Ascend/Component/AttributeComponent.h"
+#include "Ascend/Widget/HealthBar.h"
 
 
 AAIEntityModule::AAIEntityModule()
@@ -34,12 +37,57 @@ AAIEntityModule::AAIEntityModule()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->MaxWalkSpeed = 400.0f;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	static FName NAME_Attribute(TEXT("Attribute Component"));
+
+	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(NAME_Attribute);	
+
+	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidgetComponent"));
+	HealthBarWidgetComponent->SetupAttachment(GetMesh()); 
+	HealthBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f)); 
+	HealthBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthBarWidgetComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HealthBarWidgetClassFinder(TEXT("/Game/Blueprints/UI/WBP_HealthBar"));
+
+	if (HealthBarWidgetClassFinder.Succeeded())
+	{
+		HealthBarWidgetClass = HealthBarWidgetClassFinder.Class;
+	}
+}
+
+void AAIEntityModule::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (AttributeComponent)
+	{
+		AttributeComponent->SetAIEntityModule(this);
+	}
 }
 
 void AAIEntityModule::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (HealthBarWidgetClass)
+	{
+		HealthBarWidget = CreateWidget<UHealthBar>(GetWorld(), HealthBarWidgetClass);
+		if (HealthBarWidget)
+		{
+			HealthBarWidgetComponent->SetWidget(HealthBarWidget);
+		}
+	}
+}
+
+void AAIEntityModule::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (AttributeComponent != nullptr)
+	{
+		HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
+	}
 }
 
 int AAIEntityModule::MeleeAttack_Implementation()
@@ -49,4 +97,11 @@ int AAIEntityModule::MeleeAttack_Implementation()
 		PlayAnimMontage(AttackMontage);
 	}
 	return 0;
+}
+
+float AAIEntityModule::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	return DamageAmount;
 }

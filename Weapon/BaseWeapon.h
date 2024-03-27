@@ -35,6 +35,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "DeveloperProperties | ClassProps")
 	UStaticMeshComponent* WeaponMesh;
 
+public:
+	USphereComponent* GetAreaCollision() const { return AreaCollision; }
+
+	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; };
+
 #pragma endregion
 #pragma region WeaponProperties
 public:

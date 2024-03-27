@@ -63,5 +63,4 @@ void AAIControllerModule::OnTargetDetected(AActor* Actor, FAIStimulus const Stim
 	{
 		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", Stimulus.WasSuccessfullySensed());
 	}
-	UE_LOG(LogTemp, Warning, TEXT("OnTargetDetected"));
 }

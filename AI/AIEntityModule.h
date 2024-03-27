@@ -10,8 +10,11 @@
 class AAIPatrolPath;
 
 class UAnimMontage;
+class UAttributeComponent;
 class UAIDefaultAnimInstance;
 class UBehaviorTree;
+class UHealthBar;
+class UWidgetComponent;
 
 UCLASS()
 class ASCEND_API AAIEntityModule : public ACharacter, public ICombatInterface
@@ -22,7 +25,9 @@ public:
 	AAIEntityModule();
 
 protected:
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 #pragma region MainComps
 protected:
@@ -31,11 +36,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCapsuleComponent* AICapsuleComponent;
 
-	UPROPERTY()
-	UAIDefaultAnimInstance* AIAnimInstance;
 
-
-
+	UPROPERTY(VisibleAnywhere)
+	UAttributeComponent* AttributeComponent;
 #pragma endregion
 
 #pragma region Combat
@@ -44,7 +47,6 @@ private:
 	UAnimMontage* AttackMontage;
 
 	int MeleeAttack_Implementation() override;
-
 public:
 	UAnimMontage* GetAttackMontage() const { return AttackMontage; }
 #pragma endregion
@@ -61,5 +63,22 @@ private:
 public:
 	UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 	AAIPatrolPath* GetAIPatrolPath() const { return AIPatrolPath; }
+#pragma endregion
+private:
+	float DamageAmount;
+
+public:
+	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+#pragma region UI/Widgets
+private:
+	UPROPERTY(EditAnywhere, Category = DeveloperProperties)
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
+	UPROPERTY(VisibleAnywhere)
+	UWidgetComponent* HealthBarWidgetComponent;
+
+	UPROPERTY()
+	UHealthBar* HealthBarWidget;
 #pragma endregion
 };

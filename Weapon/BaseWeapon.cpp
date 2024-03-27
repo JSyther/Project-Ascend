@@ -48,22 +48,18 @@ void ABaseWeapon::CheckWeaponState()
 	{
 	case EWeaponState::EWS_Initial:
 		InitialState();
-		LW("EWS_Initial");
 		break;
 
 	case EWeaponState::EWS_Equipped:
 		EquipState();
-		LW("EWS_Equipped")
 		break;
 
 	case EWeaponState::EWS_Dropped:
 		DropState();
-		LW("EWS_Dropped")
 		break;
 
 	case EWeaponState::EWS_Tradeable:
 		TradeableState();
-		LW("EWS_Tradeable")
 		break;
 	}
 }

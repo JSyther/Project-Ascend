@@ -35,7 +35,7 @@ public:
 	ABaseCharacter* GetCharacterFromCombatSystem()  const { return BaseCharacter; }
 	ABaseWeapon*	GetWeaponFromCombatSystem()		const { return BaseWeapon; }
 
-	void SetBaseCharacterForCombatSystemComponent(ABaseCharacter* GetBaseCharacter) { BaseCharacter = GetBaseCharacter; }
+	void SetBaseCharacter(ABaseCharacter* GetBaseCharacter) { BaseCharacter = GetBaseCharacter; }
 	void SetBaseWeaponForCombatSystemComponent(ABaseWeapon* GetBaseCharacter)		{ BaseWeapon = GetBaseCharacter; }
 #pragma endregion
 

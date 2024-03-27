@@ -38,7 +38,7 @@ protected:
 	UCombatSystemComponent* CombatSystem;
 
 public:
-	FORCEINLINE void SetBaseCharacterForViewInterfaceComponent(ABaseCharacter* Insert) { BaseCharacter = Insert; }
+	FORCEINLINE void SetBaseCharacter(ABaseCharacter* Insert) { BaseCharacter = Insert; }
 #pragma endregion
 
 #pragma region Crosshair

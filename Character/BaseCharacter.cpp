@@ -19,6 +19,7 @@
 #include "Ascend/Component/ArsenalComponent.h"
 #include "Ascend/Component/CombatSystemComponent.h"
 #include "Ascend/Component/ViewInterfaceComponent.h"
+#include "Ascend/Component/AttributeComponent.h"
 
 #include "Ascend/Weapon/BaseWeapon.h"
 #include "Ascend/Weapon/MeleeWeapon.h"
@@ -29,9 +30,7 @@
 
 
 static FName NAME_ViewCamera(TEXT("ViewCamera"));
-static FName NAME_CombatSystem(TEXT("CombatSystem"));
-static FName NAME_ArsenalSystem(TEXT("ArsenalComponent"));
-static FName NAME_ViewInterface(TEXT("ViewInterfaceComponent"));
+
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -169,28 +168,40 @@ void ABaseCharacter::SetupCharacterMovementComponent()
 void ABaseCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
 	if (CombatSystem)
 	{
-		CombatSystem->SetBaseCharacterForCombatSystemComponent(this);
+		CombatSystem->SetBaseCharacter(this);
 	}
 
 	if (ArsenalSystem)
 	{
-		ArsenalSystem->SetBaseCharacterForCombatSystemComponent(this);
+		ArsenalSystem->SetBaseCharacter(this);
 	}
 
 	if (ViewInterface)
 	{
-		ViewInterface->SetBaseCharacterForViewInterfaceComponent(this);
+		ViewInterface->SetBaseCharacter(this);
+	}
+
+	if (AttributeComponent)
+	{
+		AttributeComponent->SetBaseCharacter(this);
 	}
 }
 
 
 void ABaseCharacter::CreateSubobjectComponents()
 {
-	CombatSystem  = CreateDefaultSubobject<UCombatSystemComponent>(NAME_CombatSystem);
-	ArsenalSystem = CreateDefaultSubobject<UArsenalComponent>(NAME_ArsenalSystem);
-	ViewInterface = CreateDefaultSubobject<UViewInterfaceComponent>(NAME_ViewInterface);
+	static FName NAME_CombatSystem		(TEXT("CombatSystem"));
+	static FName NAME_ArsenalSystem		(TEXT("ArsenalComponent"));
+	static FName NAME_ViewInterface		(TEXT("ViewInterfaceComponent"));
+	static FName NAME_Attribute			(TEXT("Attribute Component"));
+
+	CombatSystem		= CreateDefaultSubobject<UCombatSystemComponent>	(NAME_CombatSystem);
+	ArsenalSystem		= CreateDefaultSubobject<UArsenalComponent>			(NAME_ArsenalSystem);
+	ViewInterface		= CreateDefaultSubobject<UViewInterfaceComponent>	(NAME_ViewInterface);
+	AttributeComponent	= CreateDefaultSubobject<UAttributeComponent>		(NAME_Attribute);
 }
 
 
