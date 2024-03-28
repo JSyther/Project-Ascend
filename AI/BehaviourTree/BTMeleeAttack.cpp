@@ -46,6 +46,5 @@ EBTNodeResult::Type UBTMeleeAttack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 bool UBTMeleeAttack::MontageHasFinished(AAIEntityModule* const AIEntity)
 {
-
 	return AIEntity->GetMesh()->GetAnimInstance()->Montage_GetIsStopped(AIEntity->GetAttackMontage());
 }

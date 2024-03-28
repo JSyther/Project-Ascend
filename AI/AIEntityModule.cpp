@@ -69,6 +69,7 @@ void AAIEntityModule::PostInitializeComponents()
 void AAIEntityModule::BeginPlay()
 {
 	Super::BeginPlay();
+	Tags.Add("AIEntity");
 
 	if (HealthBarWidgetClass)
 	{
@@ -76,6 +77,7 @@ void AAIEntityModule::BeginPlay()
 		if (HealthBarWidget)
 		{
 			HealthBarWidgetComponent->SetWidget(HealthBarWidget);
+			HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
 		}
 	}
 }
@@ -83,11 +85,6 @@ void AAIEntityModule::BeginPlay()
 void AAIEntityModule::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (AttributeComponent != nullptr)
-	{
-		HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
-	}
 }
 
 int AAIEntityModule::MeleeAttack_Implementation()
@@ -99,9 +96,24 @@ int AAIEntityModule::MeleeAttack_Implementation()
 	return 0;
 }
 
+
 float AAIEntityModule::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-
+	HandleDamage(DamageAmount);
+	HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
 	return DamageAmount;
+}
+
+void AAIEntityModule::HandleDamage(float DamageValue)
+{
+	if (AttributeComponent != nullptr)
+	{
+		if (AttributeComponent->GetHealth() <= 0) return;
+		float CurrentHealth = AttributeComponent->GetHealth();
+		float GetMaxHealth	= AttributeComponent->GetMaxHealth();
+		float NewHealth		= CurrentHealth - DamageValue;
+		NewHealth			= FMath::Clamp(NewHealth, 0.0f, GetMaxHealth);
+		AttributeComponent->SetHealth(NewHealth);
+	}
 }

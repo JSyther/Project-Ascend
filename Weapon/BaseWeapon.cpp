@@ -18,7 +18,7 @@ static FName NAME_WeaponMesh(TEXT("WeaponMesh"));
 ABaseWeapon::ABaseWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(NAME_WeaponMesh); check(WeaponMesh)
 	SetRootComponent(WeaponMesh);

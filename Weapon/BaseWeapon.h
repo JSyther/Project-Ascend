@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "WeaponStructureBase.h"
+#include "Ascend/Character/BaseCharacter.h"
 #include "BaseWeapon.generated.h"
 
 class ABaseCharacter;

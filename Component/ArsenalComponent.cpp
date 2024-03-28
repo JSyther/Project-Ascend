@@ -54,6 +54,10 @@ void UArsenalComponent::EquipMeleeWeaponOnGround(AMeleeWeapon* InsertMeleeWeapon
 		AttachWeaponToActor(InsertMeleeWeapon);
 		PrimaryEquipWeapon = InsertMeleeWeapon;
 		BaseCharacter->GetCharacterAnimInstance()->SetWeaponType(EWeaponType::EWT_Melee);
+		InsertMeleeWeapon->SetOwner(BaseCharacter->GetOwner());
+		InsertMeleeWeapon->SetInstigator(BaseCharacter->GetInstigator());
+		InsertMeleeWeapon->ActivateWeaponOverlapDynamics(true);
+		
 	}
 	else if (PrimaryEquipWeapon != nullptr && SecondaryEquipWeapon == nullptr)
 	{	

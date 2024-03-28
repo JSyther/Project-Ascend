@@ -5,8 +5,11 @@
 #include "BaseWeapon.h"
 #include "MeleeWeapon.generated.h"
 
+#pragma region Pre-called
 class UBoxComponent;
 
+#pragma endregion
+#pragma region MeleeWeaponProperties
 USTRUCT(BlueprintType)
 struct FMeleeWeaponProperties
 {
@@ -62,19 +65,23 @@ public:
 	void SetPrice(float InPrice)									{ Price = InPrice; }
 	void SetSpecialEffects(const TArray<AActor*>& InSpecialEffects) { SpecialEffects = InSpecialEffects; }
 };
+#pragma endregion
 
 UCLASS()
 class ASCEND_API AMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 
+#pragma region Weapon-Main
 public:
 	AMeleeWeapon();
 	virtual void BeginPlay() override;
 
 	void EditMeleeWeaponsByType();
 
+#pragma endregion
 
+#pragma region Class-Component-Structures
 protected:
 	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* DamageCollision;
@@ -82,10 +89,22 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DeveloperProperties)
     FMeleeWeaponProperties MeleeWeaponProperties;
 
+public:
+	FMeleeWeaponProperties GetMeleeWeaponProperties() const { return MeleeWeaponProperties; }
+#pragma endregion
+
+#pragma region WeaponOverlaps
+private:
+	bool IsActorSameType(AActor* OtherActor);
+
+private:
+	float LastDamageTime = 0.0f;
+
 protected:
+	UFUNCTION()
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
-    FMeleeWeaponProperties GetMeleeWeaponProperties() const { return MeleeWeaponProperties; }
-
+	void ActivateWeaponOverlapDynamics(bool bActivate);
+#pragma endregion
 };

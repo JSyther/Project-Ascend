@@ -23,5 +23,4 @@ class ASCEND_API ICombatInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Combat")
 	int MeleeAttack();
-
 };

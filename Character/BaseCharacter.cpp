@@ -753,7 +753,20 @@ void ABaseCharacter::ResetSpeedAndDirections()
 
 
 #pragma endregion
+#pragma region Damage-System
+float ABaseCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	//HandleDamage(DamageAmount);
+	//HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
+	UE_LOG(LogTemp, Warning, TEXT("DamageTaken: %f"), DamageAmount);
+	return DamageAmount;
+
+	return 0.0f;
+}
+#pragma endregion
 #pragma region AI-System
+
 void ABaseCharacter::SetupStimulusSource()
 {
 	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));

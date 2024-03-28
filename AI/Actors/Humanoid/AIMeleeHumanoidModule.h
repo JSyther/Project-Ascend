@@ -20,9 +20,11 @@ public:
 
 
 private:
+	UPROPERTY(EditAnywhere)
+	bool bSpawnWithWeapon = false;
+
 	UPROPERTY(EditAnywhere, Category = DeveloperProperties)
 	TArray<TSubclassOf<AMeleeWeapon>> MeleeWeapons;
 
 	void SpawnAndAttachMeleeWeapon();
-
 };

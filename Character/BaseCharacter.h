@@ -47,7 +47,7 @@ public:
 	// Configures the character's movement parameters such as crouched height, maximum walk speed, swim speed, and related settings.
 	void SetupCharacterMovementComponent();
 
-	//	Create the components as character's subobjects.
+	//	Create the components as character's sub-objects.
 	void CreateSubobjectComponents();
 #pragma endregion
 protected:
@@ -253,7 +253,15 @@ public:
 	FORCEINLINE float GetLeanRight()		const { return LeanRightRoll; }
 
 #pragma endregion
-#pragma region WeaponSystem
+
+#pragma region Damage-System
+private:
+	float DamageAmount;
+
+public:
+	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+#pragma endregion
+#pragma region Weapon-System
 private:
 	UPROPERTY()
 	ABaseWeapon* OverlapWeapon = nullptr;
@@ -266,7 +274,6 @@ private:
 
 public:
 	void SetOverlapWeapon(ABaseWeapon* Weapon) { OverlapWeapon = Weapon; }
-
 #pragma endregion
 
 #pragma region AI-System

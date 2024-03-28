@@ -47,8 +47,16 @@ private:
 	UAnimMontage* AttackMontage;
 
 	int MeleeAttack_Implementation() override;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = DeveloperProperties, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DrawWeaponMontage;
+
 public:
 	UAnimMontage* GetAttackMontage() const { return AttackMontage; }
+
+	UAnimMontage* GetDrawWeaponMontage() const { return DrawWeaponMontage; }
+
 #pragma endregion
 	
 #pragma endregion
@@ -69,6 +77,8 @@ private:
 
 public:
 	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void HandleDamage(float DamageValue);
 
 #pragma region UI/Widgets
 private:
