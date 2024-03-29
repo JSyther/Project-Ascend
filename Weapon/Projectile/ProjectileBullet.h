@@ -6,9 +6,7 @@
 #include "ProjectileModule.h"
 #include "ProjectileBullet.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class ASCEND_API AProjectileBullet : public AProjectileModule
 {
@@ -27,6 +25,6 @@ public:
 		const FHitResult& Hit
 	) override;
 
-
+	
 
 };

@@ -14,6 +14,7 @@ void AAIMeleeHumanoidModule::BeginPlay()
 	SpawnAndAttachMeleeWeapon();
 }
 
+
 void AAIMeleeHumanoidModule::SpawnAndAttachMeleeWeapon()
 {
 	if (bSpawnWithWeapon)
@@ -44,16 +45,30 @@ void AAIMeleeHumanoidModule::SpawnAndAttachMeleeWeapon()
 
 		if (SpawnedMeleeWeapon)
 		{
-			//SpawnedMeleeWeapon->GetAreaCollision()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			//SpawnedMeleeWeapon->GetWeaponMesh()->SetSimulatePhysics(false);
-			//SpawnedMeleeWeapon->GetWeaponMesh()->SetEnableGravity(false);
-			//SpawnedMeleeWeapon->GetWeaponMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			SpawnedMeleeWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-			SpawnedMeleeWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+			SpawnedMeleeWeapon->SetAIMeleeHumanoid(this);
 			SpawnedMeleeWeapon->SetInstigator(GetInstigator());
 			SpawnedMeleeWeapon->SetOwner(GetOwner());
+			SpawnedMeleeWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+			SpawnedMeleeWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 			SpawnedMeleeWeapon->ActivateWeaponOverlapDynamics(true);
 			SetMeleeWeaponClass(SpawnedMeleeWeapon);
+			CurrentMeleeWeapon = SpawnedMeleeWeapon;
 		}
 	}
+}
+
+void AAIMeleeHumanoidModule::DeAttachMeleeWeapon()
+{
+	if (CurrentMeleeWeapon)
+	{
+		CurrentMeleeWeapon->SetInstigator(nullptr);
+		CurrentMeleeWeapon->SetOwner(nullptr);
+		CurrentMeleeWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		CurrentMeleeWeapon->SetWeaponState(EWeaponState::EWS_Dropped);
+	}
+}
+void AAIMeleeHumanoidModule::OnDeath()
+{
+	Super::OnDeath();
+	DeAttachMeleeWeapon();
 }

@@ -35,6 +35,7 @@ void UCombatSystemComponent::MeleeAttack(bool bMeleeAttack)
 	{
 		if (BaseCharacter != nullptr)
 		{
+			BaseCharacter->GetArsenalSystem()->GetMeleeWeapon()->ActivateWeaponOverlapDynamics(true);
 			BaseCharacter->GetWorldTimerManager().SetTimer
 			(
 				WeaponTimerHandle,
@@ -48,7 +49,11 @@ void UCombatSystemComponent::MeleeAttack(bool bMeleeAttack)
 
 void UCombatSystemComponent::MeleeAttackFinished()
 {
-	BaseCharacter->SetAttackButtonPressed(false);
+	if (BaseCharacter)
+	{
+		BaseCharacter->SetAttackButtonPressed(false);
+		BaseCharacter->GetArsenalSystem()->GetMeleeWeapon()->ActivateWeaponOverlapDynamics(false);
+	}
 }
 
 void UCombatSystemComponent::RangeAttack()

@@ -1,4 +1,4 @@
-// // @2023 All rights reversed by Reverse-Alpha Studios
+// @2023 All rights reversed by Reverse-Alpha Studios
 
 
 #include "ProjectileModule.h"
@@ -9,6 +9,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 
+#include "Ascend/Character/BaseCharacter.h"
+#include "Ascend/Weapon/BaseWeapon.h"
+#include "Ascend/AI/AIEntityModule.h"
 
 AProjectileModule::AProjectileModule()
 {
@@ -46,6 +49,7 @@ void AProjectileModule::BeginPlay()
 }
 
 
+
 void AProjectileModule::SpawnTrailSystem()
 {
 	if (TrailSystem)
@@ -64,8 +68,27 @@ void AProjectileModule::SpawnTrailSystem()
 	}
 }
 
+
+void AProjectileModule::ReceiveAndApplyDamageAmount(AActor* DamagedActor, float BaseDamage, AController* DamageSender)
+{
+	OnHitDamagedActor		= DamagedActor;
+	WeaponBaseDamage		= BaseDamage;
+	OnHitEventInstigator	= DamageSender;
+
+	UGameplayStatics::ApplyDamage
+	(
+		OnHitDamagedActor,
+		WeaponBaseDamage,
+		OnHitEventInstigator,
+		this,
+		UDamageType::StaticClass()
+	);
+}
+
 void AProjectileModule::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+
+	ReceiveAndApplyDamageAmount(OnHitDamagedActor, WeaponBaseDamage, OnHitEventInstigator);
 	Destroy();
 }
 

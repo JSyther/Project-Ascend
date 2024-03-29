@@ -8,6 +8,7 @@
 #include "BaseWeapon.generated.h"
 
 class ABaseCharacter;
+class AAIMeleeHumanoidModule;
 
 class UStaticMeshComponent;
 class USphereComponent;
@@ -30,6 +31,9 @@ protected:
 	UPROPERTY()
 	ABaseCharacter* BaseCharacter;
 
+	UPROPERTY()
+	AAIMeleeHumanoidModule* AIMeleeHumanoid;
+
 	UPROPERTY(VisibleAnywhere, Category = "DeveloperProperties|ClassProps")
 	USphereComponent* AreaCollision;
 
@@ -38,11 +42,26 @@ protected:
 
 public:
 	USphereComponent* GetAreaCollision() const { return AreaCollision; }
-
 	UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; };
+
+	void SetAIMeleeHumanoid(AAIMeleeHumanoidModule* MeleeHumanoid) { AIMeleeHumanoid = MeleeHumanoid; }
+
+#pragma endregion
+#pragma region Weapon Classes
 
 #pragma endregion
 #pragma region WeaponProperties
+private:
+	UPROPERTY()
+	ARangedWeapon* RangeWeaponClass = nullptr;
+
+	UPROPERTY()
+	AMeleeWeapon* MeleeWeaponClass  = nullptr;
+
+public:
+	void SetRangeWeapon(ARangedWeapon* RangeWeapon) { RangeWeaponClass  = RangeWeapon; }
+	void SetMeleeWeapon(AMeleeWeapon* MeleeWeapon)  { MeleeWeaponClass  = MeleeWeapon; }
+
 public:
 	UPROPERTY(EditAnywhere, Category = "DeveloperProperties|ItemProps")
 	EObtainingMethod ObtainingMethod;

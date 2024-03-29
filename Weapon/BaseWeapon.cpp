@@ -20,13 +20,17 @@ ABaseWeapon::ABaseWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(NAME_WeaponMesh); check(WeaponMesh)
-	SetRootComponent(WeaponMesh);
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(NAME_WeaponMesh); 
+	check(WeaponMesh)
 
-	AreaCollision = CreateDefaultSubobject<USphereComponent>(NAME_AreaCollision); check(AreaCollision);
+	AreaCollision = CreateDefaultSubobject<USphereComponent>(NAME_AreaCollision);
+	check(AreaCollision);
+
+	SetRootComponent(WeaponMesh);
 	AreaCollision->SetupAttachment(WeaponMesh);
 	AreaCollision->SetSphereRadius(100.0f);
 }
+
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -80,19 +84,46 @@ void ABaseWeapon::EquipState()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);	
+	if (AreaCollision->OnComponentBeginOverlap.IsBound())
+	{
+		AreaCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereOverlap);
+	}
+
+	if (AreaCollision->OnComponentEndOverlap.IsBound())
+	{
+		AreaCollision->OnComponentEndOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereEndOverlap);
+	}
 	PlayEquipWeaponSound();
 }
 void ABaseWeapon::DropState()
 {
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	WeaponMesh->SetSimulatePhysics(true);
+	WeaponMesh->SetEnableGravity(true);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	AreaCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	AreaCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	AreaCollision->OnComponentBeginOverlap.AddDynamic(this, &ABaseWeapon::OnSphereOverlap);
+	AreaCollision->OnComponentEndOverlap.AddDynamic(this, &ABaseWeapon::OnSphereEndOverlap);
 
+	// TODO : drop weapon sound
 }
 void ABaseWeapon::TradeableState()
 {
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetSimulatePhysics(false);
 	AreaCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	AreaCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereOverlap);
-	AreaCollision->OnComponentEndOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereEndOverlap);
+
+	if (AreaCollision->OnComponentBeginOverlap.IsBound())
+	{
+		AreaCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereOverlap);
+	}
+
+	if (AreaCollision->OnComponentEndOverlap.IsBound())
+	{
+		AreaCollision->OnComponentEndOverlap.RemoveDynamic(this, &ABaseWeapon::OnSphereEndOverlap);
+	}
 }
 #pragma endregion
 #pragma region Overlap

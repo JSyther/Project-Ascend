@@ -4,7 +4,7 @@
 #include "ProjectileBullet.h"
 
 #include "GameFramework/ProjectileMovementComponent.h"
-
+#include "Ascend/Weapon/RangedWeapon.h"
 static FName NAME_ProjectileMovementComponent(TEXT("ProjectileMovementComponent"));
 
 AProjectileBullet::AProjectileBullet()
@@ -19,4 +19,5 @@ AProjectileBullet::AProjectileBullet()
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::OnHit(HitComponent, OtherActor, OtherComponent, NormalImpulse, Hit);
+
 }

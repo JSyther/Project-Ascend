@@ -1,10 +1,12 @@
-// // @2023 All rights reversed by Reverse-Alpha Studios
+// @2023 All rights reversed by Reverse-Alpha Studios
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProjectileModule.generated.h"
+
+class ARangedWeapon;
 
 class UBoxComponent;
 class UParticleSystem;
@@ -13,6 +15,9 @@ class UProjectileMovementComponent;
 class USoundCue;
 class UNiagaraSystem;
 class UNiagaraComponent;
+
+
+#define ENABLE_RANGE_WEAPON_TYPE_DAMAGE 0
 
 UCLASS()
 class ASCEND_API AProjectileModule : public AActor
@@ -29,6 +34,9 @@ protected:
 	/*ProjectileMovement*/
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovementComponent;
+
+	UPROPERTY()
+	ARangedWeapon* RangedWeapon;
 
 	UPROPERTY(EditAnywhere)
 	float ProjectileInitialSpeed;
@@ -69,7 +77,17 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float OuterRadiusDamage = FMath::FRandRange(50.0f, 100.0f);
+private:
+	UPROPERTY()
+	AActor* OnHitDamagedActor = nullptr;
 
+	UPROPERTY()
+	float WeaponBaseDamage = 0.0f;
+
+	UPROPERTY()
+	AController* OnHitEventInstigator = nullptr;
+public:
+	virtual void ReceiveAndApplyDamageAmount(AActor* DamagedActor, float BaseDamage, AController* DamageSender);
 protected:
 	UPROPERTY(EditAnywhere)
 	float DestroyTime = 3.0f;

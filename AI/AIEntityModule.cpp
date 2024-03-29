@@ -95,8 +95,8 @@ int AAIEntityModule::MeleeAttack_Implementation()
 	}
 	return 0;
 }
-
-
+#pragma region Life-Conditions
+	#pragma region Damage-System
 float AAIEntityModule::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
@@ -104,12 +104,15 @@ float AAIEntityModule::TakeDamage(float Damage, const FDamageEvent& DamageEvent,
 	HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
 	return DamageAmount;
 }
-
 void AAIEntityModule::HandleDamage(float DamageValue)
 {
 	if (AttributeComponent != nullptr)
 	{
-		if (AttributeComponent->GetHealth() <= 0) return;
+		if (AttributeComponent->GetHealth() <= 0)
+		{
+			Death();
+			return;
+		}
 		float CurrentHealth = AttributeComponent->GetHealth();
 		float GetMaxHealth	= AttributeComponent->GetMaxHealth();
 		float NewHealth		= CurrentHealth - DamageValue;
@@ -117,3 +120,28 @@ void AAIEntityModule::HandleDamage(float DamageValue)
 		AttributeComponent->SetHealth(NewHealth);
 	}
 }
+#pragma endregion Damage-System
+void AAIEntityModule::Death()
+{
+	OnDeath();
+}
+
+void AAIEntityModule::OnDeath()
+{
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+bool AAIEntityModule::IsAIDead()
+{
+	if (AttributeComponent != nullptr)
+	{
+		if (AttributeComponent->GetHealth() <= 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+#pragma endregion Life-Conditions

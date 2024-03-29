@@ -3,7 +3,9 @@
 #include "MeleeWeapon.h"
 
 #include "Ascend/AI/AIEntityModule.h"
+#include "Ascend/AI/Actors/Humanoid/AIMeleeHumanoidModule.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -89,6 +91,7 @@ void AMeleeWeapon::EditMeleeWeaponsByType()
 
 #pragma region Weapon-Overlaps
 
+// Function to handle damage by collision
 void AMeleeWeapon::OnDamageCollisionBeginOverlap
 (
 	UPrimitiveComponent* OverlappedComp,
@@ -99,10 +102,10 @@ void AMeleeWeapon::OnDamageCollisionBeginOverlap
 	const FHitResult& SweepResult
 )
 {
-	// Check if the overlapping actor is the owner of this weapon
+	// Check if the overlapping actor is the owner of this weapon or if the weapon is currently dealing damage
 	if (OtherActor == GetOwner())
 	{
-		// Do not proceed  if the overlapping actor is the owner
+		// Do not proceed if the overlapping actor is the owner or if the weapon is currently dealing damage
 		return;
 	}
 
@@ -113,48 +116,169 @@ void AMeleeWeapon::OnDamageCollisionBeginOverlap
 		return;
 	}
 
+	// Get the current melee weapon's constant weapon damage and penetration value from the weapon's properties
+	float const WeaponDamage		= MeleeWeaponProperties.GetDamageValue();
+	float const WeaponPenetration	= MeleeWeaponProperties.GetPenetrationValue();
 
+	// Calculate total damage by multiplying the current damage by the weapon's penetration value
+	float TotalDamage				= WeaponDamage * WeaponPenetration;
 
+	// Calculate the durability damage by dividing the total damage by a fixed divisor
+	float Divisor			= 2.0f;
+	float DurabilityDamage	= TotalDamage / Divisor;
 
-	// Check if the overlapping actor is an AI entity
-	AAIEntityModule* AIEntity = Cast<AAIEntityModule>(OtherActor);
-	if (AIEntity)
+	// Get the current durability value of the melee weapon
+	float CurrentDurability = MeleeWeaponProperties.GetDurability();
+
+	// Update the durability property by subtracting the calculated durability damage
+	// This simulates wear and tear on the weapon due to its usage
+	MeleeWeaponProperties.SetDurability(CurrentDurability - DurabilityDamage);
+
+	// TODO: In the future, based on durability values, the item can be unusable, breakable, or its physical damage or any multiplier can be reduced.
+
+	if (bDealDamageAgain)
 	{
-		// if the overlapping actor belongs to the same owner as the ai entity
-		if (OtherActor->GetOwner() == AIEntity->GetOwner())
+		if (BaseCharacter != nullptr)
 		{
-			// Handle interaction between this actor and AI entity of the same owner
+			// If the weapon is spawned or picked up by an instance of the BaseCharacter class...
 
-		}
-		else
-		{
-			// Handle interaction between this actor and AI entity of different owners
-		}
-	}
+			// Cast AIEntities
+			AAIEntityModule* AIEntity = Cast<AAIEntityModule>(OtherActor);
 
-	// Check if the overlapping actor is a player character
-	ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(OtherActor);
-	if (PlayerCharacter)
-	{
-		// if the overlapping actor belongs to the same owner as the player character
-		if (OtherActor->GetOwner() == PlayerCharacter->GetOwner())
-		{
-			// Handle interaction between this actor and player character of the same owner 
+			if (AIEntity != nullptr)
+			{
+				UGameplayStatics::ApplyDamage
+				(
+					AIEntity,
+					TotalDamage,
+					BaseCharacter->GetInstigatorController(),
+					this,
+					UDamageType::StaticClass()
+				);
+				UE_LOG(LogTemp, Warning, TEXT("AIMeleeHumanoid Dealed"));
+			}
 		}
-		else
+
+		if (AIMeleeHumanoid != nullptr)
 		{
-			// Handle interaction between this actor and player character of different owners
+			// If the weapon is spawned or picked up by an instance of the AIMeleeHumanoid class...
+			ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(OtherActor);
+			if (PlayerCharacter != nullptr)
+			{
+				UGameplayStatics::ApplyDamage
+				(
+					PlayerCharacter,
+					TotalDamage,
+					AIMeleeHumanoid->GetInstigatorController(),
+					this,
+					UDamageType::StaticClass()
+				);
+			}
 		}
+		bDealDamageAgain = false;
 	}
+	// Set the flag to indicate that the weapon is currently dealing damage
+	//// Check if the overlapping actor is an AI entity
+	//AAIEntityModule* AIEntity = Cast<AAIEntityModule>(OtherActor);
+	//ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(OtherActor);
+	//if (AIEntity)
+	//{
+	//	// if the overlapping actor belongs to the same owner as the ai entity
+	//	if (GetOwner() == AIEntity->GetOwner())
+	//	{
+	//		// Handle interaction between this actor and AI entity of the same owner
+	//		 
+	//		UE_LOG(LogTemp, Warning, TEXT("FLAG #1"));
+	//	}
+	//	else
+	//	{
+	//		// Handle interaction between this actor and AI entity of different owners
+	//		// ApplyDamage to A.I entities
+	//		APawn* PlayerInstigator = BaseCharacter->GetInstigator();
+	//		if (PlayerInstigator != nullptr)
+	//		{
+	//			AController* PlayerInstigatorController = PlayerInstigator->GetController();
+	//			if (PlayerInstigatorController != nullptr)
+	//			{
+	//				UGameplayStatics::ApplyDamage
+	//				(
+	//					AIEntity,
+	//					TotalMeleeWeaponDamage,
+	//					PlayerInstigatorController,
+	//					this,
+	//					UDamageType::StaticClass()
+	//				);
+	//				UE_LOG(LogTemp, Warning, TEXT("AIEntity Damage Done"));
+	//			}
+	//			else
+	//			{
+	//				UE_LOG(LogTemp, Warning, TEXT("PlayerInstigatorController nullptr"));
+	//			}
+	//		}
+	//		else
+	//		{
+	//			UE_LOG(LogTemp, Warning, TEXT("PlayerInstigator nullptr"));
+	//		}
+	//	}
+	//}
+	//// Check if the overlapping actor is a player character
+	//if (PlayerCharacter)
+	//{
+	//	// if the overlapping actor belongs to the same owner as the player character
+	//	if (GetOwner() == PlayerCharacter->GetOwner())
+	//	{
+	//		// Handle interaction between this actor and player character of the same owner 
+	//	}
+	//	else
+	//	{
+	//		// Handle interaction between this actor and player character of different owners
+	//		APawn* AIInstigator = AIEntity->GetInstigator();
+	//		if (AIInstigator != nullptr)
+	//		{
+	//			AController* AIInstigatorController = AIInstigator->GetController();
+	//			if (AIInstigatorController != nullptr)
+	//			{
+	//				// ApplyDamage to Character
+	//				UGameplayStatics::ApplyDamage
+	//				(
+	//					PlayerCharacter,
+	//					TotalMeleeWeaponDamage,
+	//					AIInstigatorController,
+	//					this,
+	//					UDamageType::StaticClass()
+	//				);
+	//				UE_LOG(LogTemp, Warning, TEXT("Player Damage Done"));
+	//			}
+	//			else
+	//			{
+	//				UE_LOG(LogTemp, Warning, TEXT("AIInstigatorController nullptr"));
+	//			}
+	//		}
+	//		else
+	//		{
+	//			UE_LOG(LogTemp, Warning, TEXT("AIInstigator nullptr"));
+	//		}
+	//	}
+	//}
 }
-
-
-
-
 
 void AMeleeWeapon::ActivateWeaponOverlapDynamics(bool bActivate)
 {
-	DamageCollision->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnDamageCollisionBeginOverlap);
+	if (bActivate)
+	{
+		if (DamageCollision->OnComponentBeginOverlap.IsBound() == false)
+		{
+			DamageCollision->OnComponentBeginOverlap.AddDynamic(this, &AMeleeWeapon::OnDamageCollisionBeginOverlap);
+		}
+	}
+	else
+	{
+		if (DamageCollision->OnComponentBeginOverlap.IsBound())
+		{
+			DamageCollision->OnComponentBeginOverlap.RemoveDynamic(this, &AMeleeWeapon::OnDamageCollisionBeginOverlap);
+			bDealDamageAgain = true;
+		}
+	}
 
 	if (DamageCollision->OnComponentBeginOverlap.IsBound())
 	{
@@ -163,7 +287,6 @@ void AMeleeWeapon::ActivateWeaponOverlapDynamics(bool bActivate)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Overlap event handler is not bound."));
-
 	}
 }
 
@@ -171,5 +294,4 @@ bool AMeleeWeapon::IsActorSameType(AActor* OtherActor)
 {
 	return GetOwner()->ActorHasTag(TEXT("AI")) && OtherActor->ActorHasTag(TEXT("AI"));
 }
-
 #pragma endregion

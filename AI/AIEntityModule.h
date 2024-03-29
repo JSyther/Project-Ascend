@@ -7,6 +7,7 @@
 #include "Ascend/Interface/CombatInterface.h"
 #include "AIEntityModule.generated.h"
 
+#pragma region Pre-Called
 class AAIPatrolPath;
 
 class UAnimMontage;
@@ -15,7 +16,7 @@ class UAIDefaultAnimInstance;
 class UBehaviorTree;
 class UHealthBar;
 class UWidgetComponent;
-
+#pragma endregion
 UCLASS()
 class ASCEND_API AAIEntityModule : public ACharacter, public ICombatInterface
 {
@@ -39,9 +40,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UAttributeComponent* AttributeComponent;
-#pragma endregion
 
-#pragma region Combat
+#pragma endregion
+#pragma region Combat-System
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = DeveloperProperties, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AttackMontage;
@@ -58,8 +59,7 @@ public:
 	UAnimMontage* GetDrawWeaponMontage() const { return DrawWeaponMontage; }
 
 #pragma endregion
-	
-#pragma endregion
+
 #pragma region AIProps
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = DeveloperProperties, meta = (AllowPrivateAccess = "true"))
@@ -72,6 +72,17 @@ public:
 	UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 	AAIPatrolPath* GetAIPatrolPath() const { return AIPatrolPath; }
 #pragma endregion
+#pragma region Life-Conditions
+private:
+	void Death();
+
+protected:
+	virtual void OnDeath();
+
+public:
+	bool IsAIDead();
+#pragma endregion
+#pragma region Damage-System
 private:
 	float DamageAmount;
 
@@ -79,7 +90,7 @@ public:
 	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	virtual void HandleDamage(float DamageValue);
-
+#pragma endregion
 #pragma region UI/Widgets
 private:
 	UPROPERTY(EditAnywhere, Category = DeveloperProperties)

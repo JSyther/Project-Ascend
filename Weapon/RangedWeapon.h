@@ -52,6 +52,9 @@ protected:
 	float Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Durability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Price;
 
 	UPROPERTY()
@@ -72,6 +75,7 @@ public:
 		FireRate(0.0f),
 		ReloadTime(0.0f),
 		Weight(0.0f),
+		Durability(0.0f),
 		Price(0.0f)
 	{
 
@@ -216,14 +220,29 @@ public:
 	{
 		return Weight;
 	}
+	float GetDurability()
+	{
+		return Durability;
+	}
 	float GetPrice()
 	{
 		return Price;
 	}
 	
-	void SetRangedWeaponType(ERangedWeaponType newWeaponType) { RangedWeaponType = newWeaponType; }
-	void SetWeaponFireMode(EWeaponFiringMode newFireMode) { WeaponFireMode = newFireMode; }
+	void SetRangedWeaponType(ERangedWeaponType	newWeaponType)	{ RangedWeaponType	= newWeaponType; }
+	void SetWeaponFireMode(EWeaponFiringMode	newFireMode)	{ WeaponFireMode	= newFireMode; }
 
+
+	void SetDamage				(float NewDamage)			{ Damage			= NewDamage; }
+	void SetPenetration			(float NewPenetration)		{ Penetration		= NewPenetration; }
+	void SetRange				(float NewRange)			{ Range				= NewRange; }
+	void SetAccuracy			(float NewAccuracy)			{ Accuracy			= NewAccuracy; }
+	void SetMagazineCapacity	(int32 NewMagazineCapacity) { MagazineCapacity	= NewMagazineCapacity; }
+	void SetFireRate			(float NewFireRate)			{ FireRate			= NewFireRate; }
+	void SetReloadTime			(float NewReloadTime)		{ ReloadTime		= NewReloadTime; }
+	void SetWeight				(float NewWeight)			{ Weight			= NewWeight; }
+	void SetDurability			(float NewDurability)		{ Durability		= NewDurability; }
+	void SetPrice				(float NewPrice)			{ Price				= NewPrice; }
 };
 
 
@@ -262,16 +281,18 @@ protected:
 public:
 	FRangedWeaponProperties GetRangedWeaponProperties() const { return RangedWeaponProperties; }
 #pragma endregion
-
-#pragma region FireSystem
+#pragma region Fire-System
 public:
 	virtual void Fire(const FVector& HitPoint, FHitResult& HitResult);
 
-
+	bool bCanFire_HitScan = true;
 /*Fire Types*/
 private:
 	UPROPERTY(EditAnywhere, Category = "DeveloperProperties")
 	TSubclassOf<AProjectileModule> ProjectModule;
+
+#pragma endregion
+#pragma region Damage-System
 
 #pragma endregion
 #pragma region Camera Properties

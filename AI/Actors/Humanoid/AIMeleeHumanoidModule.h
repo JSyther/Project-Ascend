@@ -17,8 +17,7 @@ public:
 	AAIMeleeHumanoidModule();
 
 	virtual void BeginPlay() override;
-
-
+	virtual void OnDeath() override;
 private:
 	UPROPERTY(EditAnywhere)
 	bool bSpawnWithWeapon = false;
@@ -26,5 +25,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = DeveloperProperties)
 	TArray<TSubclassOf<AMeleeWeapon>> MeleeWeapons;
 
+	AMeleeWeapon* CurrentMeleeWeapon = nullptr;
+
 	void SpawnAndAttachMeleeWeapon();
+	void DeAttachMeleeWeapon();
+
 };

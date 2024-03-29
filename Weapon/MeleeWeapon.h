@@ -101,6 +101,12 @@ private:
 	float LastDamageTime = 0.0f;
 
 protected:
+	// Timer handle to manage the delay between consecutive damage dealing actions of the melee weapon
+	FTimerHandle DamageTimerHandle;
+
+	// Declare a boolean variable to track whether the weapon is currently dealing damage
+	bool bDealDamageAgain = true;
+
 	UFUNCTION()
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
