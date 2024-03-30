@@ -2,8 +2,11 @@
 
 
 #include "RangedWeapon.h"
-#include "Ascend/Tools/LogMacros.h"
+#include "Engine/StaticMeshActor.h"
 
+
+#include "Components/CapsuleComponent.h"
+#include "Ascend/Tools/LogMacros.h"
 #include "Ascend/AI/AIEntityModule.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -15,27 +18,64 @@
 ARangedWeapon::ARangedWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	// Set WeaponType to represent a "Ranged" weapon
-	SetWeaponType(EWeaponType::EWT_Ranged);
+
 }
 
 void ARangedWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetRarityCategory(RangedWeaponProperties.GetRarityCategory());
-	RangedWeaponProperties.UpdateWeaponPropertiesBasedOnRangedWeaponType(RangedWeaponProperties.GetRangedWeaponType());
+	StaticRangeWeaponPropertiesInitializer();
+}
+
+void ARangedWeapon::StaticRangeWeaponPropertiesInitializer()
+{
+	// This sets the weapon type as Ranged and prevents it from being changed dynamically.
+	// Do not attempt to change this setting; it is static.
+	SetWeaponType(EWeaponType::EWT_Ranged);
+
+	// Update the properties of the ranged weapon based on its current type.
+	RangedWeaponProperties.UpdateWeaponProperties(RangedWeaponProperties.GetRangedWeaponType());
 }
 
 
+FRangedWeaponProperties ARangedWeapon::GetRangedWeaponProperties()
+{
+	// Assuming RangedWeaponProperties is a member variable of ABaseCharacter
+	return RangedWeaponProperties;
+}
+
+void ARangedWeapon::SetWeaponFireMode(EWeaponFiringMode newFireMode)
+{
+	RangedWeaponProperties.SetWeaponFireMode(newFireMode);
+}
+
 void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 {
+	// Retrieves the location and rotation of the muzzle flash socket on the weapon mesh,
+	// and sets the end point of the shot.
 	const FName MuzzleFlashSocketName("MuzzleFlashSocket");
 	FVector		MuzzleFlashSocketLocation	= WeaponMesh->GetSocketLocation(MuzzleFlashSocketName);
 	FRotator	MuzzleFlashSocketRotation	= WeaponMesh->GetSocketRotation(MuzzleFlashSocketName);
-	FVector		EndPoint = MuzzleFlashSocketLocation + (HitPoint - MuzzleFlashSocketLocation * 1.1f);
+	FVector		EndPoint					= HitPoint;
 
-#pragma region Common Properties
+#define DEBUG_LINE 1
+#if DEBUG_LINE == 0
+	DrawDebugLine
+	(
+		GetWorld(),
+		MuzzleFlashSocketLocation,
+		EndPoint,
+		FColor::Red
+	);
+#endif
+	// Play Fire Sound to player
+	if (WeaponFireSound)
+	{
+		InsertAndPlaySound2D(WeaponFireSound);
+	}
+
+	// Spawn Muzzle-Flash at its socket
 	if (MuzzleFlash)
 	{
 		if (WeaponMesh->DoesSocketExist(MuzzleFlashSocketName))
@@ -51,30 +91,27 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 			);
 		}
 	}
+#pragma region FireTrace
+	// Set up the trace parameters
+	FCollisionQueryParams CollisionParams;
+	// Ignore the projectile itself during the trace
+	CollisionParams.AddIgnoredActor(this);
+	// Trace against complex collision, including detailed collision geometry
+	CollisionParams.bTraceComplex = true;
+	// Assign a trace tag for debugging or identification purposes
+	CollisionParams.TraceTag = "ProjectileTrace";
 
-	if (WeaponFireSound)
-	{
-		InsertAndPlaySound2D(WeaponFireSound);
-	}
-
-	if (ImpactPointParticle)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation
-		(
-			GetWorld(),
-			ImpactPointParticle,
-			HitResult.ImpactPoint,
-			HitResult.ImpactNormal.Rotation()
-		);
-	}
-
-	if (ImpactPointSound)
-	{
-		InsertAndPlaySoundAtLocation(ImpactPointSound, HitPoint);
-	}
-
-
-
+	// Perform a line trace from the muzzle flash socket location to the end point
+	FHitResult WeaponHitResult;
+	bool bHit =
+	GetWorld()->LineTraceSingleByChannel
+	(
+		WeaponHitResult,
+		MuzzleFlashSocketLocation,
+		EndPoint,
+		ECC_Visibility,
+		CollisionParams
+	);
 #pragma region Damage
 	// Retrieve the current equipped weapon's damage value.
 	float WeaponDamage = RangedWeaponProperties.GetDamage();
@@ -86,7 +123,6 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 	float TotalDamage = WeaponDamage * WeaponPenetration;
 
 	// Calculate the durability damage by dividing the total damage by a fixed divisor.
-
 	// Default durability divisor
 	float DurabilityDivisor;
 	// Adjust divisor as needed for balancing
@@ -115,30 +151,6 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 #pragma region FireType
 	if (RangedWeaponProperties.GetFireType() == EFireType::EFT_HitScan)
 	{
-		if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::SingleShot)
-		{
-			if (bCanFire_HitScan)
-			{
-
-				bCanFire_HitScan = false;
-			}
-		}
-		else if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::SemiAutomatic)
-		{
-			if (bCanFire_HitScan)
-			{
-
-				bCanFire_HitScan = false;
-			}
-		}
-		else if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::Automatic)
-		{
-			if (bCanFire_HitScan)
-			{
-
-				bCanFire_HitScan = false;
-			}
-		}
 		if (RangedWeaponOptions.bSpawnTrail == true)
 		{
 			if (BulletTrail)
@@ -156,29 +168,35 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 		}
 
 		// Get the actor that was hit by a trace or collision
-		AActor* FindActor = HitResult.GetActor();
-		if (FindActor)
+		AActor* HitActor = WeaponHitResult.GetActor();
+		if (HitActor && HitActor->IsA<AAIEntityModule>())
 		{
-			// If an actor is found, get its class.
-			UClass* ActorClass = FindActor->GetClass();
-
-			// Get the superclass of the actor's class.
-			UClass* SuperClass = ActorClass->GetSuperClass();
-
-			// Get the superclass of the superclass.
-			UClass* UpperSuperClass = SuperClass->GetSuperClass();
-
-			//Get the superclass of the upper superclass(which is class "AAIEntityModule").
-			UClass* DesiredSuperClass = UpperSuperClass->GetSuperClass();
-
-			// Check if the desired superclass matches a specific class (e.g., AIEntityModule).
-			if (DesiredSuperClass == AAIEntityModule::StaticClass())
+			AAIEntityModule* AIEntity = Cast<AAIEntityModule>(HitActor);
+			if (AIEntity)
 			{
-				// If the desired superclass matches the specific class, attempt to cast it to AAIEntityModule.
-				AAIEntityModule* AIEntity = Cast<AAIEntityModule>(HitResult.GetActor());
-				if (AIEntity)
-				{
-					// If successful, apply damage to the AI entity using GameplayStatics.
+				// Get the mesh component from the AIEntity
+				// Replace "UMeshComponent" with the actual type of your mesh component
+				UMeshComponent* MeshComponent = AIEntity->GetMesh();
+
+				if (MeshComponent)
+				{		
+					// Spawn particle emitters at impact point
+					if (ImpactBodyParticle)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation
+						(
+							GetWorld(),
+							ImpactBodyParticle,
+							WeaponHitResult.ImpactPoint,
+							WeaponHitResult.ImpactNormal.Rotation()
+						);
+					}
+
+					if (ImpactBodySound)
+					{
+						InsertAndPlaySoundAtLocation(ImpactBodySound, WeaponHitResult.ImpactPoint);
+					}
+
 					UGameplayStatics::ApplyDamage
 					(
 						AIEntity,
@@ -186,14 +204,35 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 						BaseCharacter->GetInstigatorController(),
 						this,
 						UDamageType::StaticClass()
-					);
+					);	
 				}
+			}
+		}
+		else if (HitActor && HitActor->IsA<AStaticMeshActor>())
+		{
+			// Surface Hit
+
+			//Spawn Surface particle
+			if (ImpactMetalParticle)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation
+				(
+					GetWorld(),
+					ImpactMetalParticle,
+					WeaponHitResult.ImpactPoint,
+					WeaponHitResult.ImpactNormal.Rotation()
+				);
+			}
+
+			if (ImpactSurfaceSound)
+			{
+				InsertAndPlaySoundAtLocation(ImpactSurfaceSound, WeaponHitResult.ImpactPoint);
 			}
 		}
 	}
 	else if (RangedWeaponProperties.GetFireType() == EFireType::EFT_Projectile)
 	{
-		APawn* InstigatorPawn						= Cast<APawn>(GetOwner());
+		APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 		AProjectileModule* ProjectileModuleInstance = nullptr;
 
 		FVector TargetLocation = HitPoint - MuzzleFlashSocketLocation;
@@ -201,9 +240,10 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.Owner		= GetOwner();
-		SpawnParameters.Instigator	= InstigatorPawn;
-		
-		AProjectileModule* ProjectileClass = GetWorld()->SpawnActor<AProjectileModule>
+		SpawnParameters.Instigator  = InstigatorPawn;
+
+		AProjectileModule* ProjectileClass = 
+		GetWorld()->SpawnActor<AProjectileModule>
 		(
 			ProjectModule,
 			MuzzleFlashSocketLocation,
@@ -212,61 +252,73 @@ void ARangedWeapon::Fire(const FVector& HitPoint, FHitResult& HitResult)
 		);
 
 		// Get the actor that was hit by a trace or collision
-		AActor* FindActor = HitResult.GetActor();
+		AActor* FindActor = WeaponHitResult.GetActor();
 		if (FindActor)
 		{
-			// If an actor is found, get its class.
-			UClass* ActorClass = FindActor->GetClass();
-
-			// Get the superclass of the actor's class.
-			UClass* SuperClass = ActorClass->GetSuperClass();
-
-			// Get the superclass of the superclass.
-			UClass* UpperSuperClass = SuperClass->GetSuperClass();
-
-			//Get the superclass of the upper superclass(which is class "AAIEntityModule").
-			UClass* DesiredSuperClass = UpperSuperClass->GetSuperClass();
-
-			// Check if the desired superclass matches a specific class (e.g., AIEntityModule).
-			if (DesiredSuperClass == AAIEntityModule::StaticClass())
+			if (FindActor->IsA<AAIEntityModule>())
 			{
-				// If the desired superclass matches the specific class, attempt to cast it to AAIEntityModule.
-				AAIEntityModule* AIEntity = Cast<AAIEntityModule>(HitResult.GetActor());
+				AAIEntityModule* AIEntity = Cast<AAIEntityModule>(FindActor);
+				
 				if (AIEntity)
 				{
 					if (ProjectileClass)
 					{
-						ProjectileClass->ReceiveAndApplyDamageAmount(AIEntity,TotalDamage, BaseCharacter->GetInstigatorController());
+						ProjectileClass->ReceiveAndApplyDamageAmount
+						(
+							AIEntity,
+							TotalDamage,
+							BaseCharacter->GetInstigatorController()
+						);
 					}
+				}
 
-					if (AIEntity->IsAIDead())
+				if (AIEntity->IsAIDead() && WeaponHitResult.IsValidBlockingHit())
+				{
+					UPrimitiveComponent* Target = WeaponHitResult.GetComponent();
+					AActor* OwnerActor = Target->GetOwner();
+
+					if (OwnerActor)
 					{
-						if (HitResult.IsValidBlockingHit())
-						{
-							UPrimitiveComponent* Target = HitResult.GetComponent();
+						FVector NewVelocity = FVector(500.0f, 0.0f, 0.0f);
 
-							AActor* OwnerActor = Target->GetOwner();
-							if (OwnerActor)
-							{
-								FVector NewVelocity = FVector(500.0f, 0.0f, 0.0f);
-
-								Target->SetPhysicsLinearVelocity(NewVelocity);
-								LW("DONETARGET");
-							}
-						}
+						Target->SetPhysicsLinearVelocity(NewVelocity);
 					}
-					LW("PROJECTILE TO ENTITY");
 				}
 			}
 		}
 	}
 
-
 #define LOG_WEAPON_PROPERTIES 0
-#if LOG_WEAPON_PROPERTIES == 0
+#if LOG_WEAPON_PROPERTIES == 1
 	LW_TF("WeaponDamage: %f", WeaponDamage);
 	LW_TF("CurrentDurability: %f", CurrentWeaponDurability);
 	LW_TF("Durability Damage: %f", DurabilityDamage);
 #endif
 
+}
+
+void ARangedWeapon::HandleHitScanFireMode()
+{
+	if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::SingleShot)
+	{
+		if (bCanFire_HitScan)
+		{
+			bCanFire_HitScan = false;
+		}
+	}
+	else if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::SemiAutomatic)
+	{
+		if (bCanFire_HitScan)
+		{
+			bCanFire_HitScan = false;
+		}
+	}
+	else if (RangedWeaponProperties.GetWeaponFireMode() == EWeaponFiringMode::Automatic)
+	{
+		while (bCanFire_HitScan)
+		{
+
+			bCanFire_HitScan = false;
+		}
+	}
 }

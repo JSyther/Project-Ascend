@@ -95,9 +95,6 @@ public:
 
 #pragma region WeaponOverlaps
 private:
-	bool IsActorSameType(AActor* OtherActor);
-
-private:
 	float LastDamageTime = 0.0f;
 
 protected:

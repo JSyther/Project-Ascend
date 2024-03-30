@@ -28,6 +28,8 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 
+#include "Engine/DamageEvents.h"
+
 
 static FName NAME_ViewCamera(TEXT("ViewCamera"));
 
@@ -617,55 +619,51 @@ void ABaseCharacter::InputFunctionAimEnd()
 
 void ABaseCharacter::InputFunctionWeaponFiringModeSwitch()
 {
-	if (ArsenalSystem->GetPrimaryEquipWeapon() == nullptr) return;
-
-	ARangedWeapon* SwitchModeWeapon = Cast<ARangedWeapon>(ArsenalSystem->GetPrimaryEquipWeapon());
-
-	if (SwitchModeWeapon)
+	if (!ArsenalSystem)
 	{
-		ERangedWeaponType RangeWeaponType = SwitchModeWeapon->GetRangedWeaponProperties().GetRangedWeaponType();
-
-		FString RangeWeaponTypeString = UEnum::GetValueAsString(RangeWeaponType);
-
-		switch (RangeWeaponType)
-		{
-		case ERangedWeaponType::ERT_Submachine:
-		case ERangedWeaponType::ERT_Rifle:
-		{
-			// Get the current firing mode
-			ARangedWeapon* RangeWeapon = Cast<ARangedWeapon>(ArsenalSystem->GetRangedWeapon());
-
-			EWeaponFiringMode CurrentFiringMode = RangeWeapon->GetRangedWeaponProperties().GetWeaponFireMode();
-			// Calculate the next firing mode
-			EWeaponFiringMode NextFiringMode;
-			switch (CurrentFiringMode)
-			{
-			case EWeaponFiringMode::SingleShot:
-				NextFiringMode = EWeaponFiringMode::SemiAutomatic;
-				LW("SemiAutomatic");
-				break;
-			case EWeaponFiringMode::SemiAutomatic:
-				NextFiringMode = EWeaponFiringMode::Automatic;
-				LW("Automatic");
-				break;
-			case EWeaponFiringMode::Automatic:
-				NextFiringMode = EWeaponFiringMode::SingleShot;
-				LW("SingleShot");
-				break;
-			default:
-				NextFiringMode = CurrentFiringMode;
-				break;
-			}
-			// Set the next firing mode for the weapon
-			RangeWeapon->GetRangedWeaponProperties().SetWeaponFireMode(NextFiringMode);
-			CurrentFiringMode = NextFiringMode;
-			break;
-		}
-		default:
-			// Do nothing for other weapon types
-			break;
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Arsenal system not found"));
+		return;
 	}
+
+	if (!ArsenalSystem->GetPrimaryEquipWeapon())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Primary equipped weapon not found"));
+		return;
+	}
+		
+	SwitchWeaponFiringMode(ArsenalSystem->GetPrimaryEquipWeapon());
+}
+
+void ABaseCharacter::SwitchWeaponFiringMode(ABaseWeapon* InputWeapon)
+{
+	if (InputWeapon == nullptr) return;
+
+	ARangedWeapon* RangeWeapon = Cast<ARangedWeapon>(InputWeapon);
+
+	if (!(RangeWeapon->GetRangedWeaponProperties().GetRangedWeaponType() == ERangedWeaponType::ERT_Rifle ||
+		RangeWeapon->GetRangedWeaponProperties().GetRangedWeaponType() == ERangedWeaponType::ERT_Heavymachine ||
+		RangeWeapon->GetRangedWeaponProperties().GetRangedWeaponType() == ERangedWeaponType::ERT_Submachine))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Weapon type is not switchable"));
+		return;
+	}
+
+	if (RangeWeapon->GetRangedWeaponProperties().GetWeaponFireMode() == EWeaponFiringMode::SingleShot)
+	{
+		RangeWeapon->SetWeaponFireMode(EWeaponFiringMode::SemiAutomatic);
+		UE_LOG(LogTemp, Warning, TEXT("Firing mode switched to SemiAutomatic"));
+	}
+	else if (RangeWeapon->GetRangedWeaponProperties().GetWeaponFireMode() == EWeaponFiringMode::SemiAutomatic)
+	{
+		RangeWeapon->SetWeaponFireMode(EWeaponFiringMode::Automatic);
+		UE_LOG(LogTemp, Warning, TEXT("Firing mode switched to Automatic"));
+	}
+	else if (RangeWeapon->GetRangedWeaponProperties().GetWeaponFireMode() == EWeaponFiringMode::Automatic)
+	{
+		RangeWeapon->SetWeaponFireMode(EWeaponFiringMode::SingleShot);
+		UE_LOG(LogTemp, Warning, TEXT("Firing mode switched to SingleShot"));
+	}
+
 }
 
 void ABaseCharacter::InputFunctionEnterVehicle()
@@ -688,6 +686,7 @@ void ABaseCharacter::InputFunctionSlide()
 void ABaseCharacter::InputFunctionDash()
 {
 }
+
 void ABaseCharacter::InputFunctionOption()
 {
 }
@@ -757,13 +756,25 @@ void ABaseCharacter::ResetSpeedAndDirections()
 float ABaseCharacter::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-	//HandleDamage(DamageAmount);
+	//ReceiveDamage(DamageAmount);
 	//HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
 	UE_LOG(LogTemp, Warning, TEXT("DamageTaken: %f"), DamageAmount);
 	return DamageAmount;
 
 	return 0.0f;
 }
+void ABaseCharacter::ReceiveDamage(float Damage)
+{
+	// Create a default damage event
+	FDamageEvent DamageEvent;
+
+	// Get the instigator controller
+	AController* InstigatorController = GetInstigatorController();
+
+	// Call TakeDamage with the provided damage value and default damage event
+	TakeDamage(Damage, DamageEvent, InstigatorController, this);
+}
+
 #pragma endregion
 #pragma region AI-System
 

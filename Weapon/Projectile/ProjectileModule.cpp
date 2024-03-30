@@ -87,6 +87,50 @@ void AProjectileModule::ReceiveAndApplyDamageAmount(AActor* DamagedActor, float 
 
 void AProjectileModule::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor && OtherActor->IsA<AAIEntityModule>())
+	{
+		if (ImpactBodyParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation
+			(
+				GetWorld(),
+				ImpactBodyParticles,
+				GetActorTransform()
+			);
+		}
+
+		if (ImpactBodySound)
+		{
+			UGameplayStatics::PlaySoundAtLocation
+			(
+				this,
+				ImpactBodySound,
+				GetActorLocation()
+			);
+		}
+	}
+	else if (OtherActor && OtherActor->IsA<AStaticMeshActor>())
+	{
+		if (ImpactSurfaceParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation
+			(
+				GetWorld(),
+				ImpactSurfaceParticles,
+				GetActorTransform()
+			);
+		}
+
+		if (ImpactSurfaceSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation
+			(
+				this,
+				ImpactSurfaceSound,
+				GetActorLocation()
+			);
+		}
+	}
 
 	ReceiveAndApplyDamageAmount(OnHitDamagedActor, WeaponBaseDamage, OnHitEventInstigator);
 	Destroy();
@@ -113,26 +157,6 @@ void AProjectileModule::OnExplodeDamage()
 void AProjectileModule::Destroyed()
 {
 	Super::Destroyed();
-
-	if (ImpactParticles)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation
-		(
-			GetWorld(),
-			ImpactParticles,
-			GetActorTransform()
-		);
-	}
-
-	if (ImpactSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation
-		(
-			this,
-			ImpactSound,
-			GetActorLocation()
-		);
-	}
 }
 
 void AProjectileModule::StartDestroyTimer()

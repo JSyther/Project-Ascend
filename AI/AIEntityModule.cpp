@@ -100,17 +100,16 @@ int AAIEntityModule::MeleeAttack_Implementation()
 float AAIEntityModule::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	DamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-	HandleDamage(DamageAmount);
+	ReceiveDamage(DamageAmount);
 	HealthBarWidget->SetBarValuePercent(AttributeComponent->GetHealth() / AttributeComponent->GetMaxHealth());
 	return DamageAmount;
 }
-void AAIEntityModule::HandleDamage(float DamageValue)
+void AAIEntityModule::ReceiveDamage(float DamageValue)
 {
 	if (AttributeComponent != nullptr)
 	{
 		if (AttributeComponent->GetHealth() <= 0)
 		{
-			Death();
 			return;
 		}
 		float CurrentHealth = AttributeComponent->GetHealth();
@@ -118,6 +117,11 @@ void AAIEntityModule::HandleDamage(float DamageValue)
 		float NewHealth		= CurrentHealth - DamageValue;
 		NewHealth			= FMath::Clamp(NewHealth, 0.0f, GetMaxHealth);
 		AttributeComponent->SetHealth(NewHealth);
+
+		if (AttributeComponent->GetHealth() <= 0)
+		{
+			Death();
+		}
 	}
 }
 #pragma endregion Damage-System

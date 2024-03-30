@@ -89,7 +89,7 @@ private:
 public:
 	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-	virtual void HandleDamage(float DamageValue);
+	virtual void ReceiveDamage(float DamageValue);
 #pragma endregion
 #pragma region UI/Widgets
 private:

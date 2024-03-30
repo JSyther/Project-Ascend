@@ -58,10 +58,16 @@ protected:
 	UParticleSystem* ProjectileTracer;
 
 	UPROPERTY(EditAnywhere, Category = "WeaponSettings")
-	UParticleSystem* ImpactParticles;
+	UParticleSystem* ImpactSurfaceParticles;
 
 	UPROPERTY(EditAnywhere, Category = "WeaponSettings")
-	USoundCue* ImpactSound;
+	USoundCue* ImpactSurfaceSound;
+
+	UPROPERTY(EditAnywhere, Category = "WeaponSettings")
+	UParticleSystem* ImpactBodyParticles;
+
+	UPROPERTY(EditAnywhere, Category = "WeaponSettings")
+	USoundCue* ImpactBodySound;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* TrailSystem;

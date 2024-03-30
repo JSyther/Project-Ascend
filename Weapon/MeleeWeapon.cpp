@@ -25,15 +25,6 @@ AMeleeWeapon::AMeleeWeapon()
 	SetWeaponType(EWeaponType::EWT_Melee);
 	FVector BoxExtent(2.0f, 2.0f, 40.0f);
 	DamageCollision->SetBoxExtent(BoxExtent);
-
-	if (DamageCollision)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DamageCollision is valid."));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("DamageCollision is NOT valid."));
-	}
 }
 
 void AMeleeWeapon::BeginPlay()
@@ -124,8 +115,8 @@ void AMeleeWeapon::OnDamageCollisionBeginOverlap
 	float TotalDamage				= WeaponDamage * WeaponPenetration;
 
 	// Calculate the durability damage by dividing the total damage by a fixed divisor
-	float Divisor			= 2.0f;
-	float DurabilityDamage	= TotalDamage / Divisor;
+	float Divisor					= 2.0f;
+	float DurabilityDamage			= TotalDamage / Divisor;
 
 	// Get the current durability value of the melee weapon
 	float CurrentDurability = MeleeWeaponProperties.GetDurability();
@@ -177,89 +168,6 @@ void AMeleeWeapon::OnDamageCollisionBeginOverlap
 		}
 		bDealDamageAgain = false;
 	}
-	// Set the flag to indicate that the weapon is currently dealing damage
-	//// Check if the overlapping actor is an AI entity
-	//AAIEntityModule* AIEntity = Cast<AAIEntityModule>(OtherActor);
-	//ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(OtherActor);
-	//if (AIEntity)
-	//{
-	//	// if the overlapping actor belongs to the same owner as the ai entity
-	//	if (GetOwner() == AIEntity->GetOwner())
-	//	{
-	//		// Handle interaction between this actor and AI entity of the same owner
-	//		 
-	//		UE_LOG(LogTemp, Warning, TEXT("FLAG #1"));
-	//	}
-	//	else
-	//	{
-	//		// Handle interaction between this actor and AI entity of different owners
-	//		// ApplyDamage to A.I entities
-	//		APawn* PlayerInstigator = BaseCharacter->GetInstigator();
-	//		if (PlayerInstigator != nullptr)
-	//		{
-	//			AController* PlayerInstigatorController = PlayerInstigator->GetController();
-	//			if (PlayerInstigatorController != nullptr)
-	//			{
-	//				UGameplayStatics::ApplyDamage
-	//				(
-	//					AIEntity,
-	//					TotalMeleeWeaponDamage,
-	//					PlayerInstigatorController,
-	//					this,
-	//					UDamageType::StaticClass()
-	//				);
-	//				UE_LOG(LogTemp, Warning, TEXT("AIEntity Damage Done"));
-	//			}
-	//			else
-	//			{
-	//				UE_LOG(LogTemp, Warning, TEXT("PlayerInstigatorController nullptr"));
-	//			}
-	//		}
-	//		else
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("PlayerInstigator nullptr"));
-	//		}
-	//	}
-	//}
-	//// Check if the overlapping actor is a player character
-	//if (PlayerCharacter)
-	//{
-	//	// if the overlapping actor belongs to the same owner as the player character
-	//	if (GetOwner() == PlayerCharacter->GetOwner())
-	//	{
-	//		// Handle interaction between this actor and player character of the same owner 
-	//	}
-	//	else
-	//	{
-	//		// Handle interaction between this actor and player character of different owners
-	//		APawn* AIInstigator = AIEntity->GetInstigator();
-	//		if (AIInstigator != nullptr)
-	//		{
-	//			AController* AIInstigatorController = AIInstigator->GetController();
-	//			if (AIInstigatorController != nullptr)
-	//			{
-	//				// ApplyDamage to Character
-	//				UGameplayStatics::ApplyDamage
-	//				(
-	//					PlayerCharacter,
-	//					TotalMeleeWeaponDamage,
-	//					AIInstigatorController,
-	//					this,
-	//					UDamageType::StaticClass()
-	//				);
-	//				UE_LOG(LogTemp, Warning, TEXT("Player Damage Done"));
-	//			}
-	//			else
-	//			{
-	//				UE_LOG(LogTemp, Warning, TEXT("AIInstigatorController nullptr"));
-	//			}
-	//		}
-	//		else
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("AIInstigator nullptr"));
-	//		}
-	//	}
-	//}
 }
 
 void AMeleeWeapon::ActivateWeaponOverlapDynamics(bool bActivate)
@@ -279,19 +187,6 @@ void AMeleeWeapon::ActivateWeaponOverlapDynamics(bool bActivate)
 			bDealDamageAgain = true;
 		}
 	}
-
-	if (DamageCollision->OnComponentBeginOverlap.IsBound())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Overlap event handler is bound."));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Overlap event handler is not bound."));
-	}
 }
 
-bool AMeleeWeapon::IsActorSameType(AActor* OtherActor)
-{
-	return GetOwner()->ActorHasTag(TEXT("AI")) && OtherActor->ActorHasTag(TEXT("AI"));
-}
 #pragma endregion

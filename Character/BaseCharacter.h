@@ -183,7 +183,10 @@ private:
 
 /*WeaponSwitchMode*/
 	void InputFunctionWeaponFiringModeSwitch();
+	/*Subfunction*/
+	void SwitchWeaponFiringMode(ABaseWeapon* InputWeapon);
 
+/*Vehicles*/
 	void InputFunctionEnterVehicle();
 	void InputFunctionSwapWeapon();
 	void InputFunctionReload();
@@ -192,6 +195,7 @@ private:
 
 	void InputFunctionOption();
 	void InputFunctionScore();
+
 
 private:
 	bool bWantsToCrouch = false;
@@ -260,6 +264,9 @@ private:
 
 public:
 	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void ReceiveDamage(float Damage);
+
 #pragma endregion
 #pragma region Weapon-System
 private:
